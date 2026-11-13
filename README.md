@@ -24,8 +24,3 @@ checked against its signing secret. Webhooks come with the Pro API plan and abov
 prices, certificates, treasury bills and investment funds. It can also be used as a tool by n8n AI agents.
 
 More at [geneh.app/en/developers](https://geneh.app/en/developers).
-
-## About this repository
-
-This repository holds the published build of the node. Each release is published to npm from GitHub Actions with
-provenance. Report problems in the Issues tab here.
