@@ -1,0 +1,41 @@
+{
+  "name": "n8n-nodes-geneh",
+  "version": "1.0.1",
+  "description": "Geneh for n8n: exchange rates, gold, silver, transfers and savings in Egypt, with instant triggers.",
+  "keywords": [
+    "n8n-community-node-package",
+    "egypt",
+    "exchange-rates",
+    "gold",
+    "egp",
+    "geneh"
+  ],
+  "license": "MIT",
+  "homepage": "https://geneh.app/en/integrations",
+  "author": {
+    "name": "Daleenda",
+    "email": "geneh@daleenda.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Daleenda-LLC/n8n-nodes-geneh.git"
+  },
+  "main": "index.js",
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "strict": true,
+    "credentials": [
+      "dist/credentials/GenehApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/Geneh/Geneh.node.js",
+      "dist/nodes/GenehTrigger/GenehTrigger.node.js"
+    ]
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
+}
