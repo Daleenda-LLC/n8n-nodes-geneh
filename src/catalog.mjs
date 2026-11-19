@@ -319,11 +319,11 @@ function priceOf(value, instrument) {
 }
 
 /**
- * The body of `POST /business/prices` (a PriceSubmission) from a branch and rows of instrument, buy and sell. Rows
+ * The body of `POST /business/prices` (a PriceSubmission, branch `all` when none is named) from a branch and rows of instrument, buy and sell. Rows
  * arrive as an array, or as an object keyed by position, depending on the tool. Either price may be empty, not both.
  */
 export function pricesBody(input = {}) {
-  const branch = String(input.branch ?? '').trim().toLowerCase() || 'main';
+  const branch = String(input.branch ?? '').trim().toLowerCase() || 'all';
   if (!BRANCH.test(branch)) throw new Error('A branch name has letters, digits, dashes or underscores, up to 40 characters.');
   const rows = Array.isArray(input.rows) ? input.rows : input.rows && typeof input.rows === 'object' ? Object.values(input.rows) : [];
   if (!rows.length) throw new Error('Add at least one row with an instrument and a price.');

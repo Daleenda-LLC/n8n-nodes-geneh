@@ -26,7 +26,7 @@ checked against its signing secret. Webhooks come with the Pro API plan and abov
 **Geneh** gets data: currency rates, all currencies, convert money, rate history, gold, silver, one bank, transfer
 prices, certificates, treasury bills and investment funds. It can also be used as a tool by n8n AI agents.
 
-**Send Prices to Geneh** sends your business prices: a branch (default `main`) and rows of instrument, buy and sell.
+**Send Prices to Geneh** sends your business prices: a branch (default `all`) and rows of instrument, buy and sell.
 Prices can be typed with Arabic digits, and a row may have only a buy or only a sell price.
 
 More at [geneh.app/en/developers](https://geneh.app/en/developers).

@@ -69,8 +69,8 @@ const fields: INodeProperties[] = [
     displayName: 'Branch',
     name: 'branch',
     type: 'string',
-    default: 'main',
-    description: 'Letters, digits, dashes or underscores. Leave as main if you have one branch.',
+    default: 'all',
+    description: 'Letters, digits, dashes or underscores. Leave as all if you have one branch.',
     displayOptions: show([SEND_PRICES.key]),
   },
   {
@@ -146,7 +146,7 @@ export class Geneh implements INodeType {
       try {
         const key = this.getNodeParameter('operation', i) as string;
         if (key === SEND_PRICES.key) {
-          const branch = this.getNodeParameter('branch', i, 'main') as string;
+          const branch = this.getNodeParameter('branch', i, 'all') as string;
           const rows = (this.getNodeParameter('rows', i, {}) as { row?: IDataObject[] }).row ?? [];
           const body = pricesBody({ branch, rows });
           const r = (await geneh.call(this, 'POST', SEND_PRICES.path, {}, body as unknown as IDataObject, 'genehBusinessApi')) as { live?: number; held?: IDataObject[] };
