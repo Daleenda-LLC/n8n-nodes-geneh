@@ -1,5 +1,5 @@
 import type { IDataObject, IExecuteFunctions, INodeExecutionData, INodeProperties, INodeType, INodeTypeDescription } from 'n8n-workflow';
-import { NodeConnectionTypes } from 'n8n-workflow';
+import { NodeApiError, NodeConnectionTypes, NodeOperationError, type JsonObject } from 'n8n-workflow';
 import { ACTIONS, actionRequest, flatMetal, flatRates, RANGES, RECEIVE } from '../../src/catalog.mjs';
 import { bankOptions, currencyOptions, geneh } from '../shared';
 
@@ -79,7 +79,7 @@ export class Geneh implements INodeType {
   description: INodeTypeDescription = {
     displayName: 'Geneh',
     name: 'geneh',
-    icon: 'file:geneh.svg',
+    icon: { light: 'file:geneh.svg', dark: 'file:geneh.dark.svg' },
     group: ['transform'],
     version: 1,
     subtitle: '={{$parameter["operation"]}}',
@@ -133,7 +133,8 @@ export class Geneh implements INodeType {
           out.push({ json: { error: (error as Error).message }, pairedItem: { item: i } });
           continue;
         }
-        throw error;
+        if (error instanceof NodeApiError) throw new NodeApiError(this.getNode(), error as unknown as JsonObject, { message: error.message, httpCode: error.httpCode ?? undefined, itemIndex: i });
+        throw new NodeOperationError(this.getNode(), error as Error, { itemIndex: i });
       }
     }
     return [out];

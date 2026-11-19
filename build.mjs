@@ -1,5 +1,5 @@
 // Builds the n8n package: each credential and node file is bundled to CommonJS in dist/, with the shared catalog
-// inlined so the published package has no runtime dependencies.
+// inlined so the published package has no runtime dependencies. Icons sit next to their source files.
 import { copyFileSync, rmSync } from 'node:fs';
 import { build } from 'esbuild';
 
@@ -18,4 +18,6 @@ for (const f of files) {
     logLevel: 'warning',
   });
 }
-for (const dir of ['credentials', 'nodes/Geneh', 'nodes/GenehTrigger']) copyFileSync('geneh.svg', `dist/${dir}/geneh.svg`);
+for (const dir of ['credentials', 'nodes/Geneh', 'nodes/GenehTrigger']) {
+  for (const icon of ['geneh.svg', 'geneh.dark.svg']) copyFileSync(`${dir}/${icon}`, `dist/${dir}/${icon}`);
+}

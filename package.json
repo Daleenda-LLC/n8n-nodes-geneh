@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-geneh",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Geneh for n8n: exchange rates, gold, silver, transfers and savings in Egypt, with instant triggers.",
   "keywords": [
     "n8n-community-node-package",

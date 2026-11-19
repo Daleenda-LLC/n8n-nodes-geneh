@@ -16,7 +16,7 @@ export class GenehTrigger implements INodeType {
   description: INodeTypeDescription = {
     displayName: 'Geneh Trigger',
     name: 'genehTrigger',
-    icon: 'file:geneh.svg',
+    icon: { light: 'file:geneh.svg', dark: 'file:geneh.dark.svg' },
     group: ['trigger'],
     version: 1,
     subtitle: '={{$parameter["event"]}}',

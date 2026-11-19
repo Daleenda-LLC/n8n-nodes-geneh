@@ -3,7 +3,7 @@ import type { IAuthenticateGeneric, ICredentialTestRequest, ICredentialType, INo
 export class GenehApi implements ICredentialType {
   name = 'genehApi';
   displayName = 'Geneh API';
-  icon = 'file:geneh.svg' as const;
+  icon = { light: 'file:geneh.svg', dark: 'file:geneh.dark.svg' } as const;
   documentationUrl = 'https://geneh.app/en/developers';
   properties: INodeProperties[] = [
     {
