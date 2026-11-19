@@ -19,9 +19,10 @@ To send your own prices as a claimed business, make a business key (it starts wi
 
 **Geneh Trigger** starts a workflow when Geneh sends an event: best rate changed, a price alert below or above a
 price you set, a bank rate updated, the Central Bank rate changed, gold or silver prices updated, transfer prices
-updated, a new certificate or a certificate rate change, a treasury bill auction result, a fund price update, or
-prices delayed. Activating the workflow adds a Geneh webhook and deactivating it removes it. Every delivery is
-checked against its signing secret. Webhooks come with the Pro API plan and above.
+updated, a new certificate or a certificate rate change, a treasury bill auction result, a fund price update,
+prices delayed, a Geneh service incident, a price your business sent being held or going live, or last week's views
+of your business profile. Activating the workflow adds a Geneh webhook and deactivating it removes it. Every delivery
+is checked against its signing secret. Webhooks come with the Pro API plan and above.
 
 **Geneh** gets data: currency rates, all currencies, convert money, rate history, gold, silver, one bank, transfer
 prices, certificates, treasury bills and investment funds. It can also be used as a tool by n8n AI agents.

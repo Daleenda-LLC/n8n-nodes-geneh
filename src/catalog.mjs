@@ -125,6 +125,42 @@ export const EVENTS = [
     filters: ['bank'],
     sample: { source: 'nbe', phase: 'started', state: 'failing', previous_state: 'ok' },
   },
+  {
+    type: 'status.service_incident',
+    key: 'service_incident',
+    label: 'Service Incident',
+    noun: 'Incident',
+    description: 'Triggers when a Geneh service on status.geneh.app stops working or updates late, and again when it is back.',
+    filters: [],
+    sample: { incident_id: 'alerts-2026-10-16T00:35:00.000Z', topic: 'alerts', kind: 'down', phase: 'started', title: 'Price alerts stopped working', started_at: AT, ended_at: null, url: 'https://status.geneh.app/' },
+  },
+  {
+    type: 'price.held',
+    key: 'price_held',
+    label: 'Price Held',
+    noun: 'Held Price',
+    description: 'Triggers when a price your business sent is held for a check because it is far from the market. Goes to owners and editors of the business.',
+    filters: [],
+    sample: { business: 'biz_sample', instrument: 'usd', branch: 'main', side: 'sell', off: 0.31 },
+  },
+  {
+    type: 'price.live',
+    key: 'price_live',
+    label: 'Price Live',
+    noun: 'Live Price',
+    description: 'Triggers when a price your business sent goes live on Geneh. Goes to owners and editors of the business.',
+    filters: [],
+    sample: { business: 'biz_sample', instrument: 'usd', branch: 'main' },
+  },
+  {
+    type: 'views.weekly',
+    key: 'weekly_views',
+    label: 'Weekly Profile Views',
+    noun: 'Weekly Views',
+    description: 'Triggers every Saturday morning with last week\'s views of your business profile on Geneh and the taps on Call, Branches and Website. Goes to owners and editors of the business.',
+    filters: [],
+    sample: { business: 'biz_sample', week_start: '2026-11-07', week_end: '2026-11-13', views: 412, calls: 18, branches: 33, website: 9 },
+  },
 ];
 
 /** Sides as the API names them. `sell` is what a bank charges you, `buy` is what it pays you. */
