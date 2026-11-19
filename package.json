@@ -28,7 +28,8 @@
     "n8nNodesApiVersion": 1,
     "strict": true,
     "credentials": [
-      "dist/credentials/GenehApi.credentials.js"
+      "dist/credentials/GenehApi.credentials.js",
+      "dist/credentials/GenehBusinessApi.credentials.js"
     ],
     "nodes": [
       "dist/nodes/Geneh/Geneh.node.js",

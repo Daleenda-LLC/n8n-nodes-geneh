@@ -4,7 +4,7 @@ import { copyFileSync, rmSync } from 'node:fs';
 import { build } from 'esbuild';
 
 rmSync('dist', { recursive: true, force: true });
-const files = ['credentials/GenehApi.credentials', 'nodes/Geneh/Geneh.node', 'nodes/GenehTrigger/GenehTrigger.node'];
+const files = ['credentials/GenehApi.credentials', 'credentials/GenehBusinessApi.credentials', 'nodes/Geneh/Geneh.node', 'nodes/GenehTrigger/GenehTrigger.node'];
 for (const f of files) {
   await build({
     entryPoints: [`${f}.ts`],
