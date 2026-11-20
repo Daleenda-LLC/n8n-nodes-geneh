@@ -1,6 +1,6 @@
 import type { IDataObject, IExecuteFunctions, INodeExecutionData, INodeProperties, INodeType, INodeTypeDescription } from 'n8n-workflow';
 import { NodeApiError, NodeConnectionTypes, NodeOperationError, type JsonObject } from 'n8n-workflow';
-import { ACTIONS, actionRequest, flatMetal, flatRates, RANGES, RECEIVE } from '../../src/catalog.mjs';
+import { ACTIONS, actionRequest, flatMetal, flatRates, pricesBody, RANGES, RECEIVE, SEND_PRICES } from '../../src/catalog.mjs';
 import { bankOptions, currencyOptions, geneh } from '../shared';
 
 const show = (keys: string[]) => ({ show: { operation: keys } });
@@ -66,6 +66,35 @@ const fields: INodeProperties[] = [
     displayOptions: show(['transfer_quotes']),
   },
   {
+    displayName: 'Branch',
+    name: 'branch',
+    type: 'string',
+    default: 'all',
+    description: 'Letters, digits, dashes or underscores. Leave as all if you have one branch.',
+    displayOptions: show([SEND_PRICES.key]),
+  },
+  {
+    displayName: 'Prices',
+    name: 'rows',
+    type: 'fixedCollection',
+    typeOptions: { multipleValues: true },
+    default: {},
+    placeholder: 'Add Price',
+    description: 'One row for each instrument. Fill the buy price, the sell price, or both. Arabic digits are fine.',
+    displayOptions: show([SEND_PRICES.key]),
+    options: [
+      {
+        name: 'row',
+        displayName: 'Price',
+        values: [
+          { displayName: 'Instrument', name: 'instrument', type: 'string', default: '', placeholder: 'usd', description: 'Such as usd or xau_21k_g' },
+          { displayName: 'Buy Price', name: 'buy', type: 'string', default: '', description: 'In Egyptian pounds. Leave empty if you only set a sell price.' },
+          { displayName: 'Sell Price', name: 'sell', type: 'string', default: '', description: 'In Egyptian pounds. Leave empty if you only set a buy price.' },
+        ],
+      },
+    ],
+  },
+  {
     displayName: 'Simplify',
     name: 'simplify',
     type: 'boolean',
@@ -88,14 +117,20 @@ export class Geneh implements INodeType {
     usableAsTool: true,
     inputs: [NodeConnectionTypes.Main],
     outputs: [NodeConnectionTypes.Main],
-    credentials: [{ name: 'genehApi', required: true }],
+    credentials: [
+      { name: 'genehApi', required: true, displayOptions: { hide: { operation: [SEND_PRICES.key] } } },
+      { name: 'genehBusinessApi', required: true, displayOptions: { show: { operation: [SEND_PRICES.key] } } },
+    ],
     properties: [
       {
         displayName: 'Operation',
         name: 'operation',
         type: 'options',
         noDataExpression: true,
-        options: ACTIONS.map((a) => ({ name: a.label, value: a.key, action: a.label, description: `${a.description}${a.plan === 'pro' ? ' Needs the Pro API plan or above.' : ''}` })),
+        options: [
+          ...ACTIONS.map((a) => ({ name: a.label, value: a.key, action: a.label, description: `${a.description}${a.plan === 'pro' ? ' Needs the Pro API plan or above.' : ''}` })),
+          { name: SEND_PRICES.label, value: SEND_PRICES.key, action: SEND_PRICES.label, description: SEND_PRICES.description },
+        ],
         default: 'currency_rates',
       },
       ...fields,
@@ -110,6 +145,15 @@ export class Geneh implements INodeType {
     for (let i = 0; i < items.length; i++) {
       try {
         const key = this.getNodeParameter('operation', i) as string;
+        if (key === SEND_PRICES.key) {
+          const branch = this.getNodeParameter('branch', i, 'all') as string;
+          const rows = (this.getNodeParameter('rows', i, {}) as { row?: IDataObject[] }).row ?? [];
+          const body = pricesBody({ branch, rows });
+          const r = (await geneh.call(this, 'POST', SEND_PRICES.path, {}, body as unknown as IDataObject, 'genehBusinessApi')) as { live?: number; held?: IDataObject[] };
+          const held = r.held ?? [];
+          out.push({ json: { branch: body.branch, live: r.live ?? 0, held_count: held.length, held }, pairedItem: { item: i } });
+          continue;
+        }
         const action = ACTIONS.find((a) => a.key === key)!;
         const p = (name: string, fallback: unknown = '') => (action.params.includes(name) || ['rateBank', 'sendAmount', 'simplify'].includes(name) ? this.getNodeParameter(name, i, fallback) : fallback);
         const input: Record<string, unknown> = {

@@ -17,3 +17,9 @@ export function flatRates(r: any): Record<string, any>;
 export function flatMetal(r: any, metal: string): Record<string, any>;
 export function actionRequest(action: GenehAction, input?: Record<string, unknown>): { path: string; query: Record<string, string> };
 export function errorMessage(status: number, body: any): string;
+export interface GenehSendPrices { key: string; label: string; description: string; path: string }
+export const SEND_PRICES: GenehSendPrices;
+export const BUSINESS_KEY_HELP: string;
+export type PriceRow = { instrument?: unknown; buy?: unknown; sell?: unknown };
+export function pricesBody(input?: { branch?: unknown; rows?: PriceRow[] | Record<string, PriceRow> }): { branch: string; prices: { instrument: string; buy: number | null; sell: number | null }[] };
+export function businessErrorMessage(status: number, body: any): string;

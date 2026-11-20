@@ -125,6 +125,42 @@ export const EVENTS = [
     filters: ['bank'],
     sample: { source: 'nbe', phase: 'started', state: 'failing', previous_state: 'ok' },
   },
+  {
+    type: 'status.service_incident',
+    key: 'service_incident',
+    label: 'Service Incident',
+    noun: 'Incident',
+    description: 'Triggers when a Geneh service on status.geneh.app stops working or updates late, and again when it is back.',
+    filters: [],
+    sample: { incident_id: 'alerts-2026-10-16T00:35:00.000Z', topic: 'alerts', kind: 'down', phase: 'started', title: 'Price alerts stopped working', started_at: AT, ended_at: null, url: 'https://status.geneh.app/' },
+  },
+  {
+    type: 'price.held',
+    key: 'price_held',
+    label: 'Price Held',
+    noun: 'Held Price',
+    description: 'Triggers when a price your business sent is held for a check because it is far from the market. Goes to owners and editors of the business.',
+    filters: [],
+    sample: { business: 'biz_sample', instrument: 'usd', branch: 'main', side: 'sell', off: 0.31 },
+  },
+  {
+    type: 'price.live',
+    key: 'price_live',
+    label: 'Price Live',
+    noun: 'Live Price',
+    description: 'Triggers when a price your business sent goes live on Geneh. Goes to owners and editors of the business.',
+    filters: [],
+    sample: { business: 'biz_sample', instrument: 'usd', branch: 'main' },
+  },
+  {
+    type: 'views.weekly',
+    key: 'weekly_views',
+    label: 'Weekly Profile Views',
+    noun: 'Weekly Views',
+    description: 'Triggers every Saturday morning with last week\'s views of your business profile on Geneh and the taps on Call, Branches and Website. Goes to owners and editors of the business.',
+    filters: [],
+    sample: { business: 'biz_sample', week_start: '2026-11-07', week_end: '2026-11-13', views: 412, calls: 18, branches: 33, website: 9 },
+  },
 ];
 
 /** Sides as the API names them. `sell` is what a bank charges you, `buy` is what it pays you. */
@@ -287,4 +323,63 @@ export function errorMessage(status, body) {
   if (status === 403 && body?.error === 'webhook_limit') return msg;
   if (status === 429) return 'Too many requests for this API plan today. Try again later or move to a higher plan.';
   return msg ?? `Geneh answered with status ${status}.`;
+}
+
+/**
+ * The one action that writes: a claimed business sends its own prices (POST /business/prices). It needs a business
+ * key that starts with gb_ and has the prices:write scope, which is a different key from the data API key (gk_).
+ */
+export const SEND_PRICES = {
+  key: 'send_prices',
+  label: 'Send Prices to Geneh',
+  description: 'Sends the prices of your claimed business to Geneh for one branch. Needs a business key that starts with gb_.',
+  path: '/business/prices',
+};
+export const BUSINESS_KEY_HELP = 'Make a business key in your Geneh business account with the prices:write scope. It starts with gb_live_.';
+
+const BRANCH = /^[a-z0-9_-]{1,40}$/;
+const INSTRUMENT = /^[a-z0-9_-]+$/;
+const ARABIC_DIGITS = { '٠': 0, '١': 1, '٢': 2, '٣': 3, '٤': 4, '٥': 5, '٦': 6, '٧': 7, '٨': 8, '٩': 9, '۰': 0, '۱': 1, '۲': 2, '۳': 3, '۴': 4, '۵': 5, '۶': 6, '۷': 7, '۸': 8, '۹': 9 };
+
+/** A price typed by a person: a number, or text in Latin or Arabic digits. Empty is no price. */
+function priceOf(value, instrument) {
+  if (value === undefined || value === null) return null;
+  let text = String(value).replace(/[٠-٩۰-۹]/g, (d) => ARABIC_DIGITS[d]).replace(/[\s\u00a0]/g, '').replace(/٬/g, '').replace(/٫/g, '.');
+  if (text === '') return null;
+  // 52,5 is a decimal comma. In 1,250.5 and 1,250 the commas group thousands.
+  text = /^\d+,\d{1,2}$/.test(text) ? text.replace(',', '.') : text.replace(/,/g, '');
+  if (!/^\d+(\.\d+)?$/.test(text)) throw new Error(`"${String(value).trim()}" is not a number. Check the price for ${instrument}.`);
+  const n = Number(text);
+  if (!(n > 0) || !Number.isFinite(n)) throw new Error(`The price for ${instrument} must be above zero.`);
+  return n;
+}
+
+/**
+ * The body of `POST /business/prices` (a PriceSubmission, branch `all` when none is named) from a branch and rows of instrument, buy and sell. Rows
+ * arrive as an array, or as an object keyed by position, depending on the tool. Either price may be empty, not both.
+ */
+export function pricesBody(input = {}) {
+  const branch = String(input.branch ?? '').trim().toLowerCase() || 'all';
+  if (!BRANCH.test(branch)) throw new Error('A branch name has letters, digits, dashes or underscores, up to 40 characters.');
+  const rows = Array.isArray(input.rows) ? input.rows : input.rows && typeof input.rows === 'object' ? Object.values(input.rows) : [];
+  if (!rows.length) throw new Error('Add at least one row with an instrument and a price.');
+  if (rows.length > 200) throw new Error('Send up to 200 rows at a time.');
+  const prices = rows.map((row) => {
+    const instrument = String(row?.instrument ?? '').trim().toLowerCase();
+    if (!instrument) throw new Error('Each row needs an instrument, such as usd.');
+    if (!INSTRUMENT.test(instrument)) throw new Error(`The instrument ${instrument} is not valid. Use letters, digits, dashes or underscores.`);
+    const buy = priceOf(row.buy, instrument);
+    const sell = priceOf(row.sell, instrument);
+    if (buy === null && sell === null) throw new Error(`Send a buy or a sell price for ${instrument}.`);
+    return { instrument, buy, sell };
+  });
+  return { branch, prices };
+}
+
+/** Plain-language help for the answer of the business price call. */
+export function businessErrorMessage(status, body) {
+  if (status === 401) return 'Geneh did not accept this business key. Check that it starts with gb_ and has the prices:write scope.';
+  if (status === 429) return 'Too many price updates. Try again in a minute.';
+  if (status === 400 || status === 403 || status === 404) return body?.message ?? errorMessage(status, body);
+  return errorMessage(status, body);
 }
